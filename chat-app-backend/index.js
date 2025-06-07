@@ -16,7 +16,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new socketIo(server, {
     cors: {
-        origin: "*",
+        origin: "https://chat-app-puce-one.vercel.app",
         methods: ["GET", "POST"]
     }
 })
