@@ -6,6 +6,7 @@ const Chat = ({ socket, currentUser, selectedUser }) => {
     const [text, setText] = useState("");
     const [isTyping, setIsTyping] = useState(false);
     const bottomRef = useRef(null);
+    const textareaRef = useRef();
 
     let typingTimeout;
 
@@ -74,7 +75,7 @@ const Chat = ({ socket, currentUser, selectedUser }) => {
             senderId: currentUser._id,
             receiverId: selectedUser._id,
             text,
-            timestamp: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
         }
         console.log("Sending message:", messageData);
 
@@ -115,11 +116,24 @@ const Chat = ({ socket, currentUser, selectedUser }) => {
             </div>
 
             <div className="chat-input">
-                <input
+                <textarea
+                    ref={textareaRef}
                     value={text}
                     onChange={(e) => {
                         setText(e.target.value);
                         handleTyping();
+
+                        const textarea = textareaRef.current;
+                        if (textarea){
+                            textarea.style.height = "auto";
+                            textarea.style.height = `${textarea.scrollHeight}px`;
+                        }
+                    }}
+                    onKeyDown={(e)=>{
+                        if (e.key === "Enter" && !e.shiftKey){
+                            e.preventDefault();
+                            sendMessage();
+                        }
                     }}
                     placeholder="Type message..."
                 />
