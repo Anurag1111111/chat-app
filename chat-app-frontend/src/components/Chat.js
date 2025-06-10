@@ -1,12 +1,16 @@
 import React, { useEffect, useState, useRef } from "react";
+import EmojiPicker from "emoji-picker-react";
 import API from "../utils/api";
 
-const Chat = ({ socket, currentUser, selectedUser }) => {
+const Chat = ({ socket, currentUser, selectedUser, theme }) => {
     const [messages, setMessages] = useState([]);
     const [text, setText] = useState("");
     const [isTyping, setIsTyping] = useState(false);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
     const bottomRef = useRef(null);
-    const textareaRef = useRef();
+    const textareaRef = useRef(null);
+    const emojiRef = useRef(null);
 
     let typingTimeout;
 
@@ -25,48 +29,11 @@ const Chat = ({ socket, currentUser, selectedUser }) => {
         }, 3000);
     };
 
-    useEffect(() => {
-        socket.on("typing", ({ senderId }) => {
-            if (senderId === selectedUser._id) {
-                setIsTyping(true);
-            }
-        });
-
-        socket.on("stop_typing", ({ senderId }) => {
-            if (senderId === selectedUser._id) {
-                setIsTyping(false);
-            }
-        });
-
-        return () => {
-            socket.off("typing");
-            socket.off("stop_typing");
-        };
-    }, [socket, selectedUser._id]);
-
-    useEffect(() => {
-        const fetchMessages = async () => {
-            try {
-                const { data } = await API.get(`/messages/${selectedUser._id}`);
-                setMessages(data);
-            } catch (err) {
-                console.error(err)
-            }
-        }
-        fetchMessages();
-    }, [selectedUser]);
-
-    useEffect(() => {
-        socket.on('receive_message', (message) => {
-            if (
-                (message.sender === selectedUser._id && message.receiver === currentUser._id) ||
-                (message.sender === currentUser._id && message.receiver === selectedUser._id)
-            ) {
-                setMessages((prev) => [...prev, message]);
-            }
-        });
-        return () => socket.off("receive_message");
-    }, [socket, currentUser._id, selectedUser._id]);
+    const handleEmojiClick = (emojiData) => {
+        setText(prev => prev + emojiData.emoji);
+        setShowEmojiPicker(false);
+        textareaRef.current?.focus();
+    };
 
     const sendMessage = () => {
         if (!text.trim()) return;
@@ -76,13 +43,68 @@ const Chat = ({ socket, currentUser, selectedUser }) => {
             receiverId: selectedUser._id,
             text,
             createdAt: new Date().toISOString(),
-        }
-        console.log("Sending message:", messageData);
+        };
 
-        socket.emit('send_message', messageData);
-        setMessages((prev) => [...prev, { ...messageData, sender: currentUser._id }]);
+        socket.emit("send_message", messageData);
+        setMessages(prev => [...prev, { ...messageData, sender: currentUser._id }]);
         setText("");
+        setShowEmojiPicker(false);
     };
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (emojiRef.current && !emojiRef.current.contains(event.target)) {
+                setShowEmojiPicker(false);
+            }
+        };
+
+        if (showEmojiPicker) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [showEmojiPicker]);
+
+    useEffect(() => {
+        const fetchMessages = async () => {
+            try {
+                const { data } = await API.get(`/messages/${selectedUser._id}`);
+                setMessages(data);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        fetchMessages();
+    }, [selectedUser]);
+
+    useEffect(() => {
+        socket.on("receive_message", (message) => {
+            if (
+                (message.sender === selectedUser._id && message.receiver === currentUser._id) ||
+                (message.sender === currentUser._id && message.receiver === selectedUser._id)
+            ) {
+                setMessages(prev => [...prev, message]);
+            }
+        });
+        return () => socket.off("receive_message");
+    }, [socket, currentUser._id, selectedUser._id]);
+
+    useEffect(() => {
+        socket.on("typing", ({ senderId }) => {
+            if (senderId === selectedUser._id) setIsTyping(true);
+        });
+
+        socket.on("stop_typing", ({ senderId }) => {
+            if (senderId === selectedUser._id) setIsTyping(false);
+        });
+
+        return () => {
+            socket.off("typing");
+            socket.off("stop_typing");
+        };
+    }, [socket, selectedUser._id]);
 
     useEffect(() => {
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -116,27 +138,40 @@ const Chat = ({ socket, currentUser, selectedUser }) => {
             </div>
 
             <div className="chat-input">
-                <textarea
-                    ref={textareaRef}
-                    value={text}
-                    onChange={(e) => {
-                        setText(e.target.value);
-                        handleTyping();
+                <div className="textarea-wrapper">
+                    <textarea
+                        ref={textareaRef}
+                        value={text}
+                        onChange={(e) => {
+                            setText(e.target.value);
+                            handleTyping();
 
-                        const textarea = textareaRef.current;
-                        if (textarea){
-                            textarea.style.height = "auto";
-                            textarea.style.height = `${textarea.scrollHeight}px`;
-                        }
-                    }}
-                    onKeyDown={(e)=>{
-                        if (e.key === "Enter" && !e.shiftKey){
-                            e.preventDefault();
-                            sendMessage();
-                        }
-                    }}
-                    placeholder="Type message..."
-                />
+                            const textarea = textareaRef.current;
+                            if (textarea) {
+                                textarea.style.height = "auto";
+                                textarea.style.height = `${textarea.scrollHeight}px`;
+                            }
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                sendMessage();
+                            }
+                        }}
+                        placeholder="Type message..."
+                    />
+
+                    <span className="emoji-icon" onClick={() => setShowEmojiPicker(prev => !prev)}
+                        aria-label="Toggle emoji picker" role="button" tabIndex={0}>
+                        😊
+                    </span>
+
+                    {showEmojiPicker && (
+                        <div className="emoji-picker-inside" ref={emojiRef}>
+                            <EmojiPicker onEmojiClick={handleEmojiClick} theme={theme === "dark" ? "dark" : "light"} />
+                        </div>
+                    )}
+                </div>
                 <button onClick={sendMessage}>Send</button>
             </div>
         </div>

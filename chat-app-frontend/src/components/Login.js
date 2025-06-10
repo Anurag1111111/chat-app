@@ -15,7 +15,7 @@ const Login = () => {
 
         if (name === "email") {
             if (!value.trim()) {
-                message = "Email is Required"
+                message = "Email is required"
             } else if (!/^[\w.-]+@[A-Za-z\d.-]+\.[A-Za-z]{2,}$/.test(value)) {
                 message = "Invalid Email format"
             }
