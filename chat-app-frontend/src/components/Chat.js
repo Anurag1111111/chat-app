@@ -11,6 +11,7 @@ const Chat = ({ socket, currentUser, selectedUser, theme }) => {
     const bottomRef = useRef(null);
     const textareaRef = useRef(null);
     const emojiRef = useRef(null);
+    const messageSoundRef = useRef(new Audio("/message.mp3"))
 
     let typingTimeout;
 
@@ -106,6 +107,9 @@ const Chat = ({ socket, currentUser, selectedUser, theme }) => {
                 (message.sender === currentUser._id && message.receiver === selectedUser._id)
             ) {
                 setMessages(prev => [...prev, message]);
+                if (message.sender !== currentUser._id) {
+                    messageSoundRef.current.play().catch(e => console.log("Sound error:", e));
+                }
             }
         });
         return () => socket.off("receive_message");
