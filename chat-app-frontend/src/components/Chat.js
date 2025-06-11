@@ -51,6 +51,26 @@ const Chat = ({ socket, currentUser, selectedUser, theme }) => {
         setShowEmojiPicker(false);
     };
 
+    const getMessageDateLabel = (createdAt) => {
+        const messageDate = new Date(createdAt);
+        const today = new Date();
+        const yesterday = new Date();
+        yesterday.setDate(today.getDate() - 1);
+
+        const isToday = messageDate.toDateString() === today.toDateString();
+        const isYesterday = messageDate.toDateString() === yesterday.toDateString();
+
+        if (isToday) return "Today";
+        if (isYesterday) return "Yesterday";
+
+        return messageDate.toLocaleDateString("en-US", {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+        });
+    };
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (emojiRef.current && !emojiRef.current.contains(event.target)) {
@@ -114,19 +134,32 @@ const Chat = ({ socket, currentUser, selectedUser, theme }) => {
         <div className="chat-area">
             <h3>Chat with {selectedUser.username}</h3>
             <div className="message-box">
-                {messages.map((msg, idx) => (
-                    <div
-                        key={idx}
-                        className={`message ${msg.sender === currentUser._id ? 'sent' : 'received'}`}
-                    >
-                        <div>{msg.text}</div>
-                        <div className="timestamp">
-                            {msg.createdAt && !isNaN(new Date(msg.createdAt).getTime())
-                                ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                                : 'Sending...'}
-                        </div>
-                    </div>
-                ))}
+                {messages.map((msg, idx) => {
+                    const showDate =
+                        idx === 0 ||
+                        new Date(msg.createdAt).toDateString() !== new Date(messages[idx - 1].createdAt).toDateString();
+
+                    return (
+                        <React.Fragment key={idx}>
+                            {showDate && (
+                                <div className="message-date">
+                                    {getMessageDateLabel(msg.createdAt)}
+                                </div>
+                            )}
+                            <div className={`message ${msg.sender === currentUser._id ? 'sent' : 'received'}`}>
+                                <div>{msg.text}</div>
+                                <div className="timestamp">
+                                    {msg.createdAt && !isNaN(new Date(msg.createdAt).getTime())
+                                        ? new Date(msg.createdAt).toLocaleTimeString([], {
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })
+                                        : 'Sending...'}
+                                </div>
+                            </div>
+                        </React.Fragment>
+                    );
+                })}
 
                 {isTyping && (
                     <div className={`typing-start ${isTyping ? 'show' : 'hide'}`}>

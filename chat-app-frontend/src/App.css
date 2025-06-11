@@ -368,6 +368,26 @@ body.dark-mode .message-box {
   display: none;
 }
 
+.message-date {
+  text-align: center;
+  margin: 12px 0;
+  font-size: 14px;
+  color: #999;
+  font-weight: 500;
+  position: relative;
+}
+
+.message-date::before,
+.message-date::after {
+  content: "";
+  display: inline-block;
+  width: 10%;
+  height: 1px;
+  background-color: #ccc;
+  margin: 0 10px;
+  vertical-align: middle;
+}
+
 /* ======================
    Auth Pages (Login/Register)
 ====================== */
@@ -375,12 +395,20 @@ body.dark-mode .message-box {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background-color: var(--bg-main);
+  background: radial-gradient(circle at top left, #8EC5FC, #E0C3FC);
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .auth-box {
-  background-color: var(--bg-secondary);
+  background-color: #fff;
   padding: 40px;
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
