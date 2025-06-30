@@ -1,14 +1,16 @@
 import React, { useState } from "react";
-import API from "../utils/api.js";
-import { setUser } from "../utils/auth.js";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
+import { registerUser } from "../redux/slices/authSlice";
 
 const Register = () => {
     const [form, setForm] = useState({ username: "", email: "", password: "" });
     const [error, setError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { loading } = useSelector((state) => state.auth);
 
     const validateField = (name, value) =>{
         let message = "";
@@ -71,13 +73,11 @@ const Register = () => {
         };
 
         try {
-            const { data } = await API.post("/auth/register", form);
-            setUser(data.token, data.user);
-            toast.success("Registration Done")
-            navigate("/login");
-        }
-        catch (err) {
-            setError(err.response?.data?.message || "Registration Failed");
+            await dispatch(registerUser(form)).unwrap();
+            toast.success("Registration successful");
+            navigate("/");
+        } catch (err) {
+            setError(err || "Registration failed");
         }
     }
 
@@ -102,7 +102,9 @@ const Register = () => {
                         <input type="password" name="password" placeholder="Password" onChange={handleChange} onBlur={handleBlur} required />
                     </div>
                     {fieldErrors.password && <p style={{color : 'red'}}>{fieldErrors.password}</p>}
-                    <button type='submit'>Register</button>
+                    <button type="submit" disabled={loading}>
+                        {loading ? <span className="spinner"></span> : "Register"}
+                    </button>
                 </form>
                 <p>Already have an account? <a href="/login">Login</a></p>
             </div>

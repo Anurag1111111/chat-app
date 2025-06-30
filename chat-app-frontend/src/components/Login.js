@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import API from '../utils/api.js';
-import { setUser } from '../utils/auth.js';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "react-toastify";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "../redux/slices/authSlice.js";
 
 const Login = () => {
     const [form, setForm] = useState({ email: "", password: "" });
     const [error, setError] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { loading } = useSelector((state) => state.auth);
 
     const validateField = (name, value) => {
         let message = "";
@@ -62,13 +64,11 @@ const Login = () => {
         }
 
         try {
-            const { data } = await API.post("/auth/login", form);
-            setUser(data.token, data.user);
-            toast.success("Login successful!")
-            navigate("/")
-        }
-        catch (err) {
-            setError(err.response?.data?.message || "Login Failed");
+            await dispatch(loginUser(form)).unwrap();
+            toast.success("Login successful!");
+            navigate("/");
+        } catch (err) {
+            toast.error(err.message || "Login failed");
         }
     };
 
@@ -88,7 +88,9 @@ const Login = () => {
                         <input type="password" name="password" placeholder="Password" onChange={handleChange} onBlur={handleBlur} required />
                     </div>
                     {fieldErrors.password && <p style={{ color: 'red' }}>{fieldErrors.password}</p>}
-                    <button type='submit'>Login</button>
+                    <button type="submit" disabled={loading}>
+                        {loading ? <span className="spinner"></span> : "Login"}
+                    </button>
                 </form>
                 <p>Don't have an account? <a href="/register">Register</a></p>
             </div>
