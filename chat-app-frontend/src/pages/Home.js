@@ -11,9 +11,22 @@ const Home = () => {
     const [user, setUser] = useState(null);
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState(null);
-    const [theme, setTheme] = useState("light"); 
+    const [theme, setTheme] = useState("light");
+
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [showSidebar, setShowSidebar] = useState(window.innerWidth >= 768);
 
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const handleResize = () => {
+            const mobile = window.innerWidth < 768;
+            setIsMobile(mobile);
+            setShowSidebar(!mobile);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         if (theme === "dark") {
@@ -55,9 +68,24 @@ const Home = () => {
         setTheme(prev => (prev === "light" ? "dark" : "light"));
     };
 
+    const toggleSidebar = () => {
+        setShowSidebar(prev => !prev);
+    };
+
+    const handleUserClick = (u) => {
+        setSelectedUser(u);
+        if (isMobile) setShowSidebar(false);
+    };
+
     return (
         <div className={`home-container theme-${theme}`}>
-            <div className="sidebar">
+            {/* Overlay */}
+            {isMobile && showSidebar && (
+                <div className="overlay" onClick={() => setShowSidebar(false)}></div>
+            )}
+
+            {/* Sidebar */}
+            <div className={`sidebar ${isMobile ? (showSidebar ? 'show' : 'hide') : ''}`}>
                 <div className="sidebar-header">
                     <div className="user-info">
                         <div className="avatar">{user?.username.charAt(0).toUpperCase()}</div>
@@ -71,7 +99,7 @@ const Home = () => {
                     {users.map((u) => (
                         <div
                             key={u._id}
-                            onClick={() => setSelectedUser(u)}
+                            onClick={() => handleUserClick(u)}
                             className={`user-item ${selectedUser?._id === u._id ? 'selected' : ''}`}
                         >
                             <div className="avatar">{u.username.charAt(0).toUpperCase()}</div>
@@ -81,12 +109,19 @@ const Home = () => {
                 </div>
             </div>
 
+            {/* Chat */}
             <div className="chat-container">
-                <div className="theme-toggle-container">
+                <div className="chat-header">
+                    {isMobile && !showSidebar && (
+                        <button className="hamburger-btn" onClick={toggleSidebar}>
+                            ☰
+                        </button>
+                    )}
                     <button onClick={toggleTheme} className="theme-toggle-btn">
                         {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
                     </button>
                 </div>
+
                 {selectedUser ? (
                     <Chat
                         socket={socket}
