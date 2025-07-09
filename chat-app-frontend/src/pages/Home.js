@@ -6,8 +6,8 @@ import io from 'socket.io-client';
 import Chat from "../components/Chat.js";
 
 const socket = io("https://chat-app-50pr.onrender.com", {
-  withCredentials: true,
-  transports: ["polling", "websocket"]
+  transports: ["websocket"], // Prefer WebSocket
+  withCredentials: true
 });
 
 const Home = () => {

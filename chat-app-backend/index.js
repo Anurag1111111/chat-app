@@ -26,6 +26,10 @@ app.use(cors({
   origin: "https://chat-app-puce-one.vercel.app",
   credentials: true
 }));
+app.options("*", cors({
+  origin: "https://chat-app-puce-one.vercel.app",
+  credentials: true
+}));
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
