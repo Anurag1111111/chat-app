@@ -22,18 +22,12 @@ const io = new socketIo(server, {
 })
 
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || origin === "https://chat-app-puce-one.vercel.app") {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  credentials: true
+  origin: "https://chat-app-puce-one.vercel.app",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"]
 }));
 
-// Allow preflight OPTIONS requests
+// This line below allows preflight (OPTIONS) to work too:
 app.options("*", cors());
 app.use(express.json());
 
