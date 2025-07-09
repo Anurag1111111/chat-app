@@ -23,12 +23,8 @@ const io = new socketIo(server, {
 
 app.use(cors({
   origin: "https://chat-app-puce-one.vercel.app",
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE"]
+  credentials: true
 }));
-
-// This line below allows preflight (OPTIONS) to work too:
-app.options("*", cors());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
