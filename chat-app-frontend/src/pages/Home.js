@@ -5,7 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import Chat from "../components/Chat.js";
 
-const socket = io('https://chat-app-50pr.onrender.com');
+const socket = io("https://chat-app-50pr.onrender.com", {
+  transports: ["websocket"],  
+  withCredentials: true
+});
 
 const Home = () => {
     const [user, setUser] = useState(null);
