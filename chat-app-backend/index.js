@@ -22,9 +22,19 @@ const io = new socketIo(server, {
 })
 
 app.use(cors({
-  origin: "https://chat-app-puce-one.vercel.app",
+  origin: (origin, callback) => {
+    if (!origin || origin === "https://chat-app-puce-one.vercel.app") {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   credentials: true
 }));
+
+// Allow preflight OPTIONS requests
+app.options("*", cors());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
