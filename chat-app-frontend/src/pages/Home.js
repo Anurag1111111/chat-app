@@ -7,7 +7,11 @@ import Chat from "../components/Chat.js";
 
 const socket = io("https://chat-app-50pr.onrender.com", {
   transports: ["websocket"], // Prefer WebSocket
-  withCredentials: true
+  withCredentials: true,
+  reconnection: true,
+  reconnectionAttempts: 10,
+  reconnectionDelay: 3000, // 3 seconds
+  reconnectionDelayMax: 10000
 });
 
 const Home = () => {
