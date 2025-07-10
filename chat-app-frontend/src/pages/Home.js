@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import Chat from "../components/Chat.js";
 
-const socket = io("https://chat-app-50pr.onrender.com", {
+const socket = io("https://chat-app-production-dfe7.up.railway.app", {
   transports: ["websocket"], // Prefer WebSocket
   withCredentials: true,
   reconnection: true,
